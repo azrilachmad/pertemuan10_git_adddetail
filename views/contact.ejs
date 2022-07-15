@@ -1,0 +1,48 @@
+<div class="container-sm">
+  <h3>This is Contact Page</h3>
+
+  <% if (contacts.length === 0 || contacts.length === null || contacts.length
+  === undefined) { %>
+  <table class="table table-dark table-hover">
+    <p class="text-sm-start">Data array kosong atau tidak ditemukan</p>
+    <thead>
+      <tr>
+        <th scope="col">No.</th>
+        <th scope="col">Nama</th>
+        <th scope="col">Email</th>
+        <th scope="col">Phone</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">-</th>
+        <td>Tidak ada data</td>
+        <td>Tidak ada data</td>
+        <td>Tidak ada data</td>
+      </tr>
+    </tbody>
+  </table>
+  <% } else { %>
+  <p>Jumlah Data Kontak : <%= contacts.length %></p>
+  <table class="table table-dark table-hover">
+    <thead>
+      <tr>
+        <th scope="col">No.</th>
+        <th scope="col">Nama</th>
+        <th scope="col">Email</th>
+        <th scope="col">Action</th>
+      </tr>
+    </thead>
+    <% let i = 1 %> <% contacts.forEach(data => { %>
+    <tbody>
+      <tr>
+        <th scope="row"><%= i %></th>
+        <% i++ %>
+        <td><%= data.name%></td>
+        <td><%= data.email%></td>
+        <td><a class="btn btn-primary" href="/contact/<%= data.name%>" role="button">Details</a></td>
+      </tr>
+    </tbody>
+    <% }) %> <% } %>
+  </table>
+</div>
