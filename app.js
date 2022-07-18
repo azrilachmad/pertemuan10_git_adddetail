@@ -158,13 +158,13 @@ app.get('/contact/delete/:name', (req, res) => {
 
 // Edit data contact
 app.get('/contact/edit/:name', (req, res) => {
-  const contacts = findContact(req.params.name)
+  const contact = findContact(req.params.name)
 
 
   res.render('editContact', {
     title: 'Edit Data Contact',
     layout: 'layouts/main-layout',
-    contacts,
+    contact,
   })
 })
 
@@ -189,7 +189,7 @@ app.post('/contact/update', [
 
     res.render('editContact', {
       title: 'Form Ubah Data Contact',
-      layout: 'layout/main-layout',
+      layout: 'layouts/main-layout',
       errors: errors.array(),
       contact: req.body
     });
