@@ -1,73 +1,213 @@
-// Set Variable for Port
+// Use Express
+const express = require("express");
+const app = express();
 const port = 3000;
 
-// Express
-const express = require("express");
+// Utils
+const {
+  loadContact,
+  findContact,
+  saveContact,
+  duplicateNameCheck,
+  deleteContact,
+  updateData
+} = require("./utils/contacts");
+
+// user express-ejs=layouts
 const expressLayouts = require("express-ejs-layouts");
-const userData = require("./utils/contact");
-const app = express();
-
-// EJS
-app.set("view engine", "ejs");
-// Use Express Layout
 app.use(expressLayouts);
-app.set("layout", "./layouts/layout");
 
-// Static File
-app.use(express.static("public"));
-app.use("/css", express.static(__dirname, +"public/css"));
-app.use("/images", express.static(__dirname, +"public/images"));
-app.use("/data", express.static(__dirname, +"public/data"));
+// Use EJS
+app.set("view engine", "ejs");
 
-// Morgan
+// User Morgan
 const morgan = require("morgan");
 app.use(morgan("dev"));
 
-const fs = require("fs");
+// User Static File (Build in middleware)
+app.use(express.static("public"));
+app.use(express.urlencoded({
+  extended: true
+}));
 
+// User express=validator
+const {
+  body,
+  validationResult,
+  check
+} = require("express-validator");
+const session = require("express-session");
+const cookieParser = require("cookie-parser");
+const flash = require("connect-flash");
+
+// Config Flash
+app.use(cookieParser('secret'));
+app.use(session({
+  cookie: {
+    maxAge: 6000
+  },
+  secret: 'secreet',
+  resave: true,
+  saveUninitialized: true
+}))
+app.use(flash())
+
+// Routes
+app.use("/api", express.static("public"));
+app.use
+
+// Application level middleware
 app.use((req, res, next) => {
-  console.log("Time", Date.now());
+  console.log("Time: ", Date.now());
   next();
 });
 
-app.get("/", function (req, res) {
-  var locals = {
-    nama: "Azril",
+// Index (Home) Page
+app.get("/", (req, res) => {
+  res.render("index", {
     title: "Webserver EJS",
-    header: "header",
-    nav: "nav",
-    footer: "footer",
-  };
-  res.render("index", locals);
+    layout: "layouts/main-layout",
+  });
 });
 
+// About Page
 app.get("/about", (req, res) => {
-  // res.send('Halaman About')
-  // res.sendFile('./about.html', {root: __dirname})
-  res.render("about", { title: "Webserver EJS", cont });
+  res.render("about", {
+    title: "Webserver EJS",
+    layout: "layouts/main-layout",
+  });
 });
 
+// Contact Page
 app.get("/contact", (req, res) => {
-  const contacts = userData.loadContact()
-  res.render("contact", { title: "Webserver EJS", contacts });
+  const contacts = loadContact();
+  console.log(contacts);
+  res.render("contact", {
+    title: "User Contact List",
+    layout: "layouts/main-layout",
+    contacts,
+    msg: req.flash('msg')
+  });
 });
 
+// Add Data Page
+app.get("/contact/add", (req, res) => {
+  res.render("addContact", {
+    title: "Form Add Contact",
+    layout: "layouts/main-layout",
+  });
+});
 
+// Submit Form Data Contact
+app.post(
+  "/contact",
+  [
+    body("name").custom((value) => {
+      const duplicate = duplicateNameCheck(value);
+      if (duplicate) {
+        throw new Error("Contact name already exist!");
+      }
+      return true;
+    }),
+    check("email", "Invalid Email").isEmail(),
+    check("mobile", "Invalid Phone Number").isMobilePhone("id-ID"),
+  ],
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      // return res.status(400).json({ errors: errors.array() });
+      res.render('addContact', {
+        title: "Form Add Contact",
+        layout: "layouts/main-layout",
+        errors: errors.array()
+      })
+    } else {
+      saveContact(req.body)
+      // Kirimkan flash message
+      req.flash('msg', 'Success Input Data!')
+      res.redirect('/contact')
+    }
+  }
+);
+
+// Detail Contact Page
 app.get("/contact/:name", (req, res) => {
-  const file = fs.readFileSync("data/contacts.json", "utf8");
-  const contacts = JSON.parse(file);
-  var user = userData.detailContact(req.params.name) 
-  console.log(user.name)
-  res.render("detailContact", { title: "Webserver EJS", contacts, user });
+  console.log(req.params.name);
+  const contacts = findContact(req.params.name);
+  res.render("contactDetail", {
+    title: "User Contact Detail",
+    layout: "layouts/main-layout",
+    contacts,
+  });
 });
 
-app.get("/product/", function (req, res) {
-  res.render("product", { title: "Webserver EJS" });
+// Delete user contact
+app.get('/contact/delete/:name', (req, res) => {
+  const contact = findContact(req.params.name)
+
+  // Check contact
+  if (!contact) {
+    res.status(404)
+    res.send('<h1>404</h1>')
+  } else {
+    deleteContact(req.params.name)
+    req.flash('msg', 'Contact has been deleted')
+    res.redirect('/contact')
+  }
+})
+
+// Edit data contact
+app.get('/contact/edit/:name', (req, res) => {
+  const contacts = findContact(req.params.name)
+
+
+  res.render('editContact', {
+    title: 'Edit Data Contact',
+    layout: 'layouts/main-layout',
+    contacts,
+  })
+})
+
+
+// Update Data Contact
+app.post('/contact/update', [
+  body('name').custom((value, {
+    req
+  }) => {
+    const duplicate = duplicateNameCheck(value);
+    if (value !== req.body.oldName && duplicate) {
+      throw new Error('Contact Name Already Exist! ');
+    }
+
+    return true;
+  }),
+  check('email', 'Email tidak valid!').isEmail(),
+  check('mobile', 'No HP tidak valid!').isMobilePhone('id-ID')
+], (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+
+    res.render('editContact', {
+      title: 'Form Ubah Data Contact',
+      layout: 'layout/main-layout',
+      errors: errors.array(),
+      contact: req.body
+    });
+
+  } else {
+
+    updateData(req.body);
+    req.flash('msg', 'Success Change Data')
+    res.redirect('/contact');
+  }
+
+
 });
+
 
 app.use("/", (req, res) => {
   res.status(404);
-  res.send("Not Found : 404");
+  res.send("404 Not Found");
 });
 
 app.listen(port, () => {

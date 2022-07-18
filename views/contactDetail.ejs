@@ -1,0 +1,25 @@
+<div class="container-mt3">
+  <div class="row">
+    <div class="col-md-8">
+      <h2>User Contact Detail :</h2>
+
+      <% if (!contacts) { %>
+      <div class="alert alert-danger fw-bold" role="alert">
+        User not found. <a href="/contact" class="alert-link fw-light"><br>Back to contact list.</a>
+      </div>
+      <% } else {%>
+
+      <div class="card" style="width: 18rem;">
+        <div class="card-body">
+          <h5 class="card-title"><%= contacts.name %> </h5>
+          <h6 class="card-subtitle mb-2 text-muted"><%= contacts.mobile %> </h6>
+          <p class="card-text"><%= contacts.email %> </p>
+          <a class="btn btn-primary badge rounded-pill" href="/contact " role="button">Back</a>
+          <a class="btn btn-warning badge rounded-pill" href="/contact/edit/<%= contacts.name %>" role="button">Edit</a>
+          <a onclick="return confirm('Are you sure?')" class="btn btn-danger badge rounded-pill" href="/contact/delete/<%= contacts.name %>" role="button">Delete</a>
+        </div>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</div>
