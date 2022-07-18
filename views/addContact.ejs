@@ -4,29 +4,33 @@
       <h2>Form Add Contact </h2>
 
       <% if (typeof errors != 'undefined') { %>
-        <div class="alert alert-danger" role="alert">
-          <ul>
-            <% errors.forEach(error => { %>
-              <li><%= error.msg %> </li>
-            <% }) %>
-          </ul> 
-        </div>
+      <div class="alert alert-danger" role="alert">
+        <ul>
+          <% errors.forEach(error => { %>
+          <li><%= error.msg %> </li>
+          <% }) %>
+        </ul>
+      </div>
+      <% } %>
+
+      <% let data; %>
+      <% if (locals.params) { data = params %>
       <% } %>
 
       <form method="post" action="/contact">
         <div class="mb-3">
           <label for="name" class="form-label">Name :</label>
-          <input type="text" class="form-control" id="name" name="name" required>
+          <input type="text" class="form-control" id="name" name="name" value="<%= data?.name %> " required>
         </div>
         <div class="mb-3">
           <label for="name" class="form-label">Email :</label>
-          <input type="email" class="form-control" id="email" name="email">
+          <input type="email" class="form-control" id="email" name="email" value="<%= data?.email %> ">
         </div>
         <div class="mb-3">
           <label for="mobile" class="form-label">Phone Number :</label>
-          <input type="text" class="form-control" id="mobile" name="mobile">
+          <input type="text" class="form-control" id="mobile" name="mobile" value="<%= data?.mobile %> ">
         </div>
-        
+
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>
 

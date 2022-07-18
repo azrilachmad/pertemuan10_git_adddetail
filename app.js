@@ -119,7 +119,8 @@ app.post(
       res.render('addContact', {
         title: "Form Add Contact",
         layout: "layouts/main-layout",
-        errors: errors.array()
+        errors: errors.array(),
+        params: req.body
       })
     } else {
       saveContact(req.body)
